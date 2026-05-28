@@ -1,0 +1,46 @@
+import { FontAwesome } from '@expo/vector-icons';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+
+export default function BottomNavigation() {
+  return (
+    <View className="bg-[#e2edd9] mx-4 my-2 rounded-2xl flex-row justify-around items-center h-16 shadow-sm">
+      
+      <TouchableOpacity className="items-center justify-center flex-1">
+        <FontAwesome name="shopping-cart" size={24} color="#719e64" />
+        <Text className="text-[11px] font-bold text-[#44623b] mt-1">
+          ตะกร้า
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity className="items-center justify-center flex-1">
+        <FontAwesome name="comment" size={22} color="#719e64" />
+        <Text className="text-[11px] font-bold text-[#44623b] mt-1">
+          แชท
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity className="items-center justify-center flex-1">
+        <FontAwesome name="home" size={24} color="#44623b" />
+        <Text className="text-[11px] font-bold text-[#44623b] mt-1">
+          หน้าแรก
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity className="items-center justify-center flex-1">
+        <FontAwesome name="play-circle" size={24} color="#719e64" />
+        <Text className="text-[11px] font-bold text-[#44623b] mt-1">
+          วิดีโอ
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity className="items-center justify-center flex-1">
+        <FontAwesome name="user" size={24} color="#719e64" />
+        <Text className="text-[11px] font-bold text-[#44623b] mt-1">
+          บัญชี
+        </Text>
+      </TouchableOpacity>
+
+    </View>
+  );
+}
