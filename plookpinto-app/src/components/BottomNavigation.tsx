@@ -1,8 +1,9 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { Link } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-export default function BottomNavigation() {
+export default function BottomNavigation() { 
   return (
     <View className="bg-[#e2edd9] mx-4 my-2 rounded-2xl flex-row justify-around items-center h-16 shadow-sm">
       
@@ -34,12 +35,14 @@ export default function BottomNavigation() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="items-center justify-center flex-1">
-        <FontAwesome name="user" size={24} color="#719e64" />
-        <Text className="text-[11px] font-bold text-[#44623b] mt-1">
-          บัญชี
-        </Text>
-      </TouchableOpacity>
+   <Link href="/account" asChild>
+  <TouchableOpacity className="items-center justify-center flex-1">
+    <FontAwesome name="user" size={24} color="#719e64" />
+    <Text className="text-[11px] font-bold text-[#44623b] mt-1">
+      บัญชี
+    </Text>
+  </TouchableOpacity>
+</Link>
 
     </View>
   );
