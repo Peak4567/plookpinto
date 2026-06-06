@@ -8,8 +8,10 @@ export default function AccountScreen() {
   const router = useRouter(); 
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
   const [currentUsername, setCurrentUsername] = useState('-'); 
-  // 🌟 1. เพิ่ม State สำหรับควบคุมการเปิด/ปิด Custom Logout Modal
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  
+  // 🌟 1. เพิ่ม State สำหรับจำว่าผู้ใช้เลือกโหมดไหนอยู่ ('user' หรือ 'seller')
+  const [activeRole, setActiveRole] = useState<'user' | 'seller'>('user');
 
   // ดึงสถานะจาก SecureStore ทุกครั้งที่ผู้ใช้สลับหน้าจอกลับเข้ามาหน้านี้
   useFocusEffect(
@@ -44,20 +46,14 @@ export default function AccountScreen() {
     { id: 7, title: 'ศูนย์ช่วยเหลือ', icon: 'support', href: '/help-center' },
   ];
 
-  // 🌟 2. ฟังก์ชันยืนยันการออกจากระบบของจริงที่จะทำงานเมื่อกดปุ่มใน Modal
   const confirmLogout = async () => {
     try {
-      setLogoutModalVisible(false); // ปิด Modal ก่อน
-      
-      // ลบคีย์ล็อกอินออกจากระบบความปลอดภัยภายในเครื่อง Hardware
+      setLogoutModalVisible(false); 
       await SecureStore.deleteItemAsync('userToken'); 
       await SecureStore.deleteItemAsync('username'); 
       
-      // บังคับเคลียร์ State หน้าจอทันทีเพื่อให้ปุ่ม Re-render สลับทันตาเห็น
       setIsLoggedIn(false);
       setCurrentUsername('-');
-      
-      // ดีดกลับหน้าหลักเพื่อรีเซ็ตแผนที่เส้นทางเดินแอปให้สะอาด
       router.replace('/home'); 
     } catch (error) {
       console.error('Error during logout:', error);
@@ -90,7 +86,6 @@ export default function AccountScreen() {
         showsVerticalScrollIndicator={false}
       >
         
-        {/* สลับการแสดงผลปุ่ม เข้าสู่ระบบ / ออกจากระบบ ตามสถานะล็อกอินจริง */}
         {!isLoggedIn ? (
           <View className="flex-row mx-4 mt-4 justify-between">
             <Link href="/login" asChild>
@@ -116,7 +111,6 @@ export default function AccountScreen() {
               </TouchableOpacity>
             </Link>
             
-            {/* 🌟 3. เมื่อกดปุ่มนี้ จะสั่งเปิด Custom Modal ขึ้นมาแทน Alert แบบเก่า */}
             <TouchableOpacity 
               onPress={() => setLogoutModalVisible(true)}
               className="bg-white border border-red-500 rounded-xl py-2.5 flex-1 ml-1.5 flex-row items-center justify-center shadow-sm active:bg-red-50"
@@ -129,15 +123,24 @@ export default function AccountScreen() {
 
         {/* บล็อกแสดงข้อมูลรายละเอียดผู้ใช้งานและการ์ดที่อยู่ */}
         <View className="mx-4 mt-4 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          
+          {/* 🌟 2. ปรับปรุงแท็บสลับโหมดผู้ซื้อ / ผู้ขาย ให้กดสลับคลาสสีได้ตามโหมดที่เลือกจริง */}
           <View className="flex-row h-10 border-b border-slate-100">
-            <View className="flex-1 flex-row items-center justify-center bg-[#f2f6ee] border-r border-slate-200">
-              <FontAwesome name="user" size={16} color="#5b8c4d" />
-              <Text className="text-xs font-black text-[#5b8c4d] ml-1.5">for user</Text>
-            </View>
-            <View className="flex-1 flex-row items-center justify-center bg-[#f2f6ee]">
-              <FontAwesome name="building" size={15} color="#5b8c4d" />
-              <Text className="text-xs font-black text-[#5b8c4d] ml-1.5">สำหรับผู้ขาย</Text>
-            </View>
+            <TouchableOpacity 
+              onPress={() => setActiveRole('user')}
+              className={`flex-1 flex-row items-center justify-center ${activeRole === 'user' ? 'bg-[#e2edd9]' : 'bg-[#fafafa]'}`}
+            >
+              <FontAwesome name="user" size={16} color={activeRole === 'user' ? '#5b8c4d' : '#94a3b8'} />
+              <Text className={`text-xs font-black ml-1.5 ${activeRole === 'user' ? 'text-[#5b8c4d]' : 'text-slate-400'}`}>for user</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => setActiveRole('seller')}
+              className={`flex-1 flex-row items-center justify-center ${activeRole === 'seller' ? 'bg-[#e2edd9]' : 'bg-[#fafafa]'}`}
+            >
+              <FontAwesome name="building" size={15} color={activeRole === 'seller' ? '#5b8c4d' : '#94a3b8'} />
+              <Text className={`text-xs font-black ml-1.5 ${activeRole === 'seller' ? 'text-[#5b8c4d]' : 'text-slate-400'}`}>สำหรับผู้ขาย</Text>
+            </TouchableOpacity>
           </View>
 
           <View className="flex-row p-4">
@@ -145,7 +148,7 @@ export default function AccountScreen() {
               <TouchableOpacity className="w-full aspect-square bg-[#f5f6f4] rounded-xl items-center justify-center border border-dashed border-slate-300 p-2">
                 <FontAwesome name="picture-o" size={32} color="#b1c2a3" />
                 <Text className="text-[10px] font-bold text-slate-400 text-center mt-2">
-                  ภาพหน้าโปรไฟล์
+                  {activeRole === 'user' ? 'ภาพหน้าโปรไฟล์' : 'โลโก้ร้านค้า'}
                 </Text>
                 <Text className="text-[9px] font-bold text-slate-400 text-center mt-0.5">
                   (แตะเพื่อแก้ไขรูป)
@@ -153,29 +156,51 @@ export default function AccountScreen() {
               </TouchableOpacity>
             </View>
 
-            <View className="w-[55%] pl-2 justify-between">
-              <View className="border-b border-slate-100 pb-1">
-                <Text className="text-[11px] font-bold text-slate-700">ชื่อบัญชี: {currentUsername}</Text>
+            {/* 🌟 3. เงื่อนไขสลับการแสดงผลข้อมูลตามปุ่มที่พีคกดเลือก */}
+            {activeRole === 'user' ? (
+              // ข้อมูลฝั่งผู้ซื้อ (User Address)
+              <View className="w-[55%] pl-2 justify-between">
+                <View className="border-b border-slate-100 pb-1">
+                  <Text className="text-[11px] font-bold text-slate-700">ชื่อบัญชี: {currentUsername}</Text>
+                </View>
+                <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">บ้านเลขที่ -</Text></View>
+                <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">ตำบล -</Text></View>
+                <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">อำเภอ -</Text></View>
+                <View className="py-1"><Text className="text-[11px] font-bold text-slate-700">จังหวัด -</Text></View>
               </View>
-              <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">บ้านเลขที่ -</Text></View>
-              <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">ตำบล -</Text></View>
-              <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">อำเภอ -</Text></View>
-              <View className="py-1"><Text className="text-[11px] font-bold text-slate-700">จังหวัด -</Text></View>
-            </View>
+            ) : (
+              // ข้อมูลฝั่งร้านค้าผู้ขาย (Seller Shop Data)
+              <View className="w-[55%] pl-2 justify-between">
+                <View className="border-b border-slate-100 pb-1">
+                  <Text className="text-[11px] font-black text-[#5b8c4d]">ร้านค้า: สวนผักอินทรีย์ของ {currentUsername}</Text>
+                </View>
+                <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">สถานะร้าน: เปิดบริการ 🌱</Text></View>
+                <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">ทะเบียนเกษตรกร: รอดำเนินการ</Text></View>
+                <View className="border-b border-slate-100 py-1"><Text className="text-[11px] font-bold text-slate-700">คะแนนร้าน: 5.0 ★</Text></View>
+                <View className="py-1"><Text className="text-[11px] font-bold text-slate-700">ส่งจาก: ประเทศไทย</Text></View>
+              </View>
+            )}
           </View>
         </View>
 
-        {/* ปุ่มลัดแก้ไขโปรไฟล์ / แก้ไขที่อยู่ */}
         <View className="flex-row mx-4 mt-3 justify-between">
-          <TouchableOpacity className="bg-white border border-slate-200 rounded-xl py-2 flex-1 mr-1.5 flex-row items-center justify-center shadow-sm active:bg-slate-50">
-            <FontAwesome name="pencil" size={13} color="#5b8c4d" />
-            <Text className="text-xs font-black text-slate-700 ml-1.5">แก้ไขโปรไฟล์</Text>
-          </TouchableOpacity>
+          <Link href="/account/edit-profile" asChild>
+            <TouchableOpacity className="bg-white border border border-slate-200 rounded-xl py-2 flex-1 mr-1.5 flex-row items-center justify-center shadow-sm active:bg-slate-50">
+              <FontAwesome name="pencil" size={13} color="#5b8c4d" />
+              <Text className="text-xs font-black text-slate-700 ml-1.5">
+                {activeRole === 'user' ? 'แก้ไขโปรไฟล์' : 'แก้ไขข้อมูลร้าน'}
+              </Text>
+            </TouchableOpacity>
+          </Link>
           
-          <TouchableOpacity className="bg-white border border-slate-200 rounded-xl py-2 flex-1 ml-1.5 flex-row items-center justify-center shadow-sm active:bg-slate-50">
-            <FontAwesome name="map-marker" size={13} color="#5b8c4d" />
-            <Text className="text-xs font-black text-slate-700 ml-1.5">แก้ไขที่อยู่</Text>
-          </TouchableOpacity>
+          <Link href="/account/edit-address" asChild>
+            <TouchableOpacity className="bg-white border border-slate-200 rounded-xl py-2 flex-1 ml-1.5 flex-row items-center justify-center shadow-sm active:bg-slate-50">
+              <FontAwesome name="map-marker" size={13} color="#5b8c4d" />
+              <Text className="text-xs font-black text-slate-700 ml-1.5">
+                {activeRole === 'user' ? 'แก้ไขที่อยู่' : 'ที่อยู่ตั้งร้านค้า'}
+              </Text>
+            </TouchableOpacity>
+          </Link>
         </View>
 
         {/* รายการเมนูอื่นๆ ลูปแสดงผลอย่างเป็นระเบียบ */}
@@ -213,61 +238,39 @@ export default function AccountScreen() {
         </View>
       </ScrollView>
 
-      {/* 🌟 4. โครงสร้างหน้าตา Custom Logout Modal ปรับแต่งสไตล์ให้เข้ากับแอปพลิเคชัน */}
+      {/* โมดอลแจ้งเตือนออกจากระบบ */}
       <Modal
         animationType="fade"
         transparent={true}
         visible={logoutModalVisible}
         onRequestClose={() => setLogoutModalVisible(false)}
       >
-        {/* ฉากหลังมืดใสๆ (Overlay) */}
         <View className="flex-1 justify-center items-center bg-black/50 px-6">
-          
-          {/* กล่องเนื้อหาป๊อปอัป */}
           <View className="w-full bg-white rounded-3xl p-6 items-center shadow-2xl border border-slate-100 max-w-[320px]">
-            
-            {/* ไอคอนแจ้งเตือนวงกลมสีแดงเท่ๆ */}
             <View className="w-14 h-14 bg-red-50 rounded-full items-center justify-center mb-4 border border-red-100">
               <FontAwesome name="sign-out" size={24} color="#ef4444" />
             </View>
-
-            {/* ข้อความหัวข้อ */}
-            <Text className="text-lg font-black text-slate-800 text-center">
-              ยืนยันออกจากระบบ
-            </Text>
-            
-            {/* รายละเอียด */}
+            <Text className="text-lg font-black text-slate-800 text-center">ยืนยันออกจากระบบ</Text>
             <Text className="text-xs font-bold text-slate-400 text-center mt-1.5 mb-6 px-2">
               คุณต้องการออกจากระบบใช่หรือไม่ครับพีค? ระบบจะทำการเคลียร์ข้อมูลชั่วคราวออกทั้งหมด
             </Text>
-
-            {/* บล็อกปุ่มกดสลับฝั่งซ้าย-ขวา */}
             <View className="flex-row w-full space-x-3">
-              {/* ปุ่มยกเลิก */}
               <TouchableOpacity 
                 onPress={() => setLogoutModalVisible(false)}
                 className="flex-1 bg-slate-100 py-3 rounded-xl active:bg-slate-200"
               >
-                <Text className="text-slate-600 font-black text-center text-xs">
-                  ยกเลิก
-                </Text>
+                <Text className="text-slate-600 font-black text-center text-xs">ยกเลิก</Text>
               </TouchableOpacity>
-
-              {/* ปุ่มยืนยันสีแดงเด่นชัด */}
               <TouchableOpacity 
                 onPress={confirmLogout}
                 className="flex-1 bg-red-500 py-3 rounded-xl shadow-sm active:bg-red-600"
               >
-                <Text className="text-white font-black text-center text-xs">
-                  ออกจากระบบ
-                </Text>
+                <Text className="text-white font-black text-center text-xs">ออกจากระบบ</Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }

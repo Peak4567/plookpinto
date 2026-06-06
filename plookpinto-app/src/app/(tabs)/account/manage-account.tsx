@@ -15,7 +15,6 @@ export default function ManageAccountScreen() {
 
   return (
     <View className="flex-1 bg-[#f8f9fa]">
-      {/* Header ส่วนหัวหน้าจอ */}
       <View className="bg-white px-4 pt-14 pb-4 flex-row items-center border-b border-slate-100">
         <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
           <FontAwesome name="chevron-left" size={16} color="#5b8c4d" />

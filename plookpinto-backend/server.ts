@@ -112,12 +112,58 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
 });
 
 // ==========================================
+// 🌟 3. ประตู API (Endpoint) สำหรับ "ลืมรหัสผ่าน"
+// ==========================================
+app.post('/api/forgot-password', async (req: Request, res: Response): Promise<void> => {
+  const { username } = req.body;
+
+  // ป้องกันกรณีแอปส่งข้อมูลชื่อผู้ใช้มาแบบว่างเปล่า
+  if (!username) {
+    res.status(400).json({ error: 'กรุณากรอกชื่อบัญชีผู้ใช้ครับ พีค' });
+    return;
+  }
+
+  try {
+    // 1. ตรวจสอบก่อนว่ามีชื่อบัญชีนี้อยู่ในระบบฐานข้อมูลจริงไหม
+    const userCheck = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+    if (userCheck.rows.length === 0) {
+      res.status(404).json({ error: 'ไม่พบชื่อบัญชีผู้ใช้นี้ในระบบคอมครับ' });
+      return;
+    }
+
+    // 2. สุ่มสร้างรหัสผ่านชั่วคราวขึ้นมาใหม่ (ตัวอย่าง: Plook58421)
+    const temporaryPassword = 'Plook' + Math.floor(10000 + Math.random() * 90000);
+
+    // 3. เข้ารหัสลับรหัสผ่านชั่วคราวก่อนทำการบันทึกอัปเดต (เพื่อความปลอดภัยขั้นสูง)
+    const salt = await bcrypt.genSalt(10);
+    const hashedTempPassword = await bcrypt.hash(temporaryPassword, salt);
+
+    // 4. สั่ง UPDATE ข้อมูลรหัสผ่านในตาราง users ในเครื่องคอมพีค
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE username = $2',
+      [hashedTempPassword, username]
+    );
+
+    // 5. ส่งรหัสผ่านชั่วคราวกลับไปหาหน้าบ้าน เพื่อให้แอปแจ้งเตือนขึ้นหน้าจอ
+    res.status(200).json({
+      message: 'รีเซ็ตรหัสผ่านสำเร็จเรียบร้อยแล้ว',
+      temporaryPassword: temporaryPassword,
+    });
+
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('❌ Forgot Password Database Error:', error.message);
+    }
+    res.status(500).json({ error: 'เซิร์ฟเวอร์หลังบ้านเกิดข้อผิดพลาดในการอัปเดตรหัสผ่านใหม่' });
+  }
+});
+
+// ==========================================
 // 🚀 เปิดรันระบบสแตนด์บาย
 // ==========================================
 const PORT = Number(process.env.PORT) || 8000;
 
-// 📍 แก้ไขตรงนี้: ใส่ '0.0.0.0' เพื่อบังคับให้ Node.js กระจายสัญญาณแชร์พอร์ต 8000 ออกไปหา WiFi วงในบ้านด้วย 
-// ทำให้แอปพลิเคชัน Expo Go ในมือถือสามารถมองเห็นและยิงเข้าคอมพิวเตอร์ของพีคได้จริงครับ
+// ใส่ '0.0.0.0' เพื่อกระจายสัญญาณแชร์พอร์ตผ่านระบบเน็ตเวิร์กภายในบ้าน
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 ระบบหลังบ้าน Node.js เปิดรันสแตนด์บายแชร์พอร์ตแล้วที่ Port ${PORT}`);
 });

@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import LogoImg from '../assets/images/logo.png';
@@ -36,12 +37,14 @@ export default function Header() {
         </View>
       </View>
 
-      <TouchableOpacity className="w-[45px] items-center justify-center relative">
+      <Link href="/notification" asChild>
+        <TouchableOpacity className="w-[45px] items-center justify-center relative">
         <View className="p-2">
           <FontAwesome name="bell" size={26} color="#71a062" />
         </View>
-        <View className="absolute top-2 right-2 w-2.5 h-2.5 bg-emerald-600 rounded-full border border-white" />
-      </TouchableOpacity>
+      <View className="absolute top-2 right-2 w-2.5 h-2.5 bg-emerald-600 rounded-full border border-white" />
+        </TouchableOpacity>
+      </Link>
 
     </View>
   );

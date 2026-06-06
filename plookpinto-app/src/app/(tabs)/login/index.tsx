@@ -183,9 +183,11 @@ export default function LoginScreen() {
         </View>
 
         <View className="items-center mt-6">
-          <TouchableOpacity className="mb-4">
-            <Text className="text-xs font-bold text-[#5b8c4d]">ลืมรหัสผ่าน?</Text>
-          </TouchableOpacity>
+          <Link href="/login/forgot-password" asChild>
+            <TouchableOpacity className="mb-4">
+              <Text className="text-xs font-bold text-[#5b8c4d]">ลืมรหัสผ่าน?</Text>
+            </TouchableOpacity>
+          </Link>
           
           <View className="flex-row items-center">
             <Text className="text-xs font-bold text-slate-500">ยังไม่มีบัญชี? </Text>
