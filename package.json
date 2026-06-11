@@ -1,0 +1,10 @@
+{
+  "name": "plook-pinto-app-monorepo",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"cd plookpinto-frontend && npx expo start\" \"npm run dev --prefix plookpinto-backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

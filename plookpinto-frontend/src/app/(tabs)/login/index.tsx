@@ -16,11 +16,10 @@ export default function LoginScreen() {
       Alert.alert('แจ้งเตือน', 'กรุณากรอกชื่อบัญชีและรหัสผ่านให้ครบถ้วนครับ');
       return;
     }
-
+    
     try {
       setLoading(true);
 
-      // 🌟 📍 แก้ไขตรงนี้: ใช้ไอพี 10.0.2.2 เพื่อให้ Android Emulator ทะลุเข้าหา Node.js (Port 8000) ในคอมพีคได้โดยตรง
       const IP_ADDRESS = '10.0.2.2'; 
       const BACKEND_URL = `http://${IP_ADDRESS}:8000/api/login`;
 

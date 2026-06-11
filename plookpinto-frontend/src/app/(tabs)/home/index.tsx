@@ -1,23 +1,52 @@
 import { FontAwesome } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from '../../../components/BottomNavigation';
 import Header from '../../../components/Header';
+
+interface Product {
+  id: number;
+  name: string;
+  shop_name: string;
+  price: number;
+  image_url: string;
+}
+
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // 📍 1. เปลี่ยนจาก Array ล็อกตายตัว มาเป็น State รอรับจากฐานข้อมูลคอมพีค
+  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // 📍 2. ดึงข้อมูลจาก API หลังบ้านทันทีเมื่อเปิดหน้าจอขึ้นมา
+  useEffect(() => {
+    const fetchPopularProducts = async () => {
+      try {
+        // 💡 เปลี่ยนตัวเลขพอร์ตเป็น 8000 ให้ตรงกับระบบหลังบ้านล่าสุดของพีคครับ
+        const response = await fetch('http://10.0.2.2:8000/api/popular-products');
+        const data = await response.json();
+        
+        if (response.ok) {
+          setPopularProducts(data);
+        } else {
+          console.error('Failed to fetch:', data.error);
+        }
+      } catch (error) {
+        console.error('Network error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularProducts();
+  }, []);
 
   const categories = [
     { id: 1, name: 'แอปเปิ้ล', icon: '🌿' },
     { id: 2, name: 'กล้วย', icon: '🌱' },
     { id: 3, name: 'มะละกอ', icon: '🍃' },
     { id: 4, name: 'ส้ม', icon: '🍏' },
-  ];
-
-  const popularProducts = [
-    { id: 1, shopName: 'ชื่อร้าน' },
-    { id: 2, shopName: 'ชื่อร้าน' },
-    { id: 3, shopName: 'ชื่อร้าน' },
-    { id: 4, shopName: 'ชื่อร้าน' },
   ];
 
   const adsProducts = [
@@ -29,12 +58,13 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-white">
-        <Header/>
+      <Header/>
       <ScrollView 
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* ส่วน Banner */}
         <View className="mx-4 mt-4 bg-white border border-slate-200 rounded-2xl flex-row overflow-hidden h-36 shadow-sm">
           <View className="flex-1 items-center justify-center bg-white">
             <Text className="text-xl font-black tracking-wider text-slate-800">Banner</Text>
@@ -44,6 +74,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* ส่วน หมวดหมู่ */}
         <View className="mt-5 px-4">
           <Text className="text-base font-black text-slate-900 mb-3">หมวดหมู่</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
@@ -59,16 +90,35 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
         
+        {/* 📍 ส่วน สินค้าขายดี (อัปเดตดึงข้อมูล Dynamic และแสดงผลสวยงามขึ้น) */}
         <View className="mt-5 px-4">
           <Text className="text-base font-black text-slate-900 mb-3">สินค้าขายดี</Text>
-          <View className="flex-row justify-between">
-            {popularProducts.map((item) => (
-              <View key={item.id} className="bg-[#e3ecf0] border border-slate-200 rounded-xl p-2 items-center w-[23%] shadow-sm">
-                <Text className="text-[11px] font-bold text-slate-700 mb-2">{item.shopName}</Text>
-                <Text className="text-3xl">🍎</Text>
-              </View>
-            ))}
-          </View>
+          
+          {loading ? (
+            <ActivityIndicator size="small" color="#5b8c4d" className="py-4" />
+          ) : (
+            <View className="flex-row justify-between flex-wrap">
+              {popularProducts.map((item) => (
+                <View key={item.id} className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2 items-center w-[23%] shadow-sm mb-2">
+                  {/* แสดงรูปสินค้าจริงจากอินเทอร์เน็ตที่ผูกไว้ใน DB */}
+                  <Image 
+                    source={{ uri: item.image_url }} 
+                    className="w-12 h-12 rounded-lg bg-slate-100 mb-1"
+                    resizeMode="cover"
+                  />
+                  <Text className="text-[9px] font-black text-slate-800 text-center" numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text className="text-[8px] font-bold text-slate-400 text-center" numberOfLines={1}>
+                    {item.shop_name}
+                  </Text>
+                  <Text className="text-[10px] font-black text-[#5b8c4d] mt-0.5">
+                    ฿{item.price}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* ส่วน โฆษณาสินค้า */}
